@@ -1,0 +1,640 @@
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>[PAGE TITLE]</title>
+
+  <!-- Google Fonts: Inter for clean, readable placeholder typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN for responsive grid and spacing utilities -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Early theme check to prevent flash of wrong theme on page load -->
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem('wireframe-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ==========================================================================
+       1. THEME & WIREFRAME CUSTOM VARIABLES (Light Default & Dark Mode)
+       Edit these variables to quickly apply your brand colors later.
+       ========================================================================== */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border-wire: #cbd5e1;
+      --border-solid: #e2e8f0;
+      --text-main: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-color: #0f172a;
+      --accent-hover: #1e293b;
+      --accent-contrast: #ffffff;
+      --nav-glass: rgba(255, 255, 255, 0.85);
+      --card-shadow: rgba(15, 23, 42, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0b0f19;
+      --bg-surface: #111827;
+      --bg-subtle: #1e293b;
+      --border-wire: #334155;
+      --border-solid: #1e293b;
+      --text-main: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent-color: #f8fafc;
+      --accent-hover: #e2e8f0;
+      --accent-contrast: #0f172a;
+      --nav-glass: rgba(11, 15, 25, 0.85);
+      --card-shadow: rgba(0, 0, 0, 0.45);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      overflow-x: hidden;
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    /* Theme-aware semantic helper classes */
+    .theme-surface {
+      background-color: var(--bg-surface);
+      transition: background-color 0.35s ease, border-color 0.35s ease;
+    }
+
+    .theme-subtle {
+      background-color: var(--bg-subtle);
+      border-color: var(--border-solid);
+      transition: background-color 0.35s ease, border-color 0.35s ease;
+    }
+
+    .theme-border {
+      border-color: var(--border-solid);
+      transition: border-color 0.35s ease;
+    }
+
+    .theme-text-main {
+      color: var(--text-main);
+      transition: color 0.35s ease;
+    }
+
+    .theme-text-secondary {
+      color: var(--text-secondary);
+      transition: color 0.35s ease;
+    }
+
+    .theme-text-muted {
+      color: var(--text-muted);
+      transition: color 0.35s ease;
+    }
+
+    .theme-accent-btn {
+      background-color: var(--accent-color);
+      color: var(--accent-contrast);
+      transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    }
+
+    .theme-accent-btn:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .theme-badge {
+      background-color: var(--accent-color);
+      color: var(--accent-contrast);
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    /* Wireframe dashed box helper for easy visual identification of drop-in zones */
+    .wire-box {
+      background-color: var(--bg-surface);
+      border: 1.5px dashed var(--border-wire);
+      transition: background-color 0.35s ease, border-color 0.25s ease, color 0.35s ease;
+    }
+
+    .wire-box:hover {
+      border-color: var(--accent-color);
+    }
+
+    /* Option button active & inactive states */
+    .option-btn-active {
+      border-color: var(--accent-color);
+      background-color: var(--accent-color);
+      color: var(--accent-contrast);
+      font-weight: 600;
+    }
+
+    .option-btn-inactive {
+      border-color: var(--border-wire);
+      background-color: var(--bg-surface);
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .option-btn-inactive:hover {
+      border-color: var(--accent-color);
+      color: var(--text-main);
+    }
+
+    /* Theme Toggle Sun/Moon Icon Transition */
+    .theme-icon {
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+    }
+
+    [data-theme="dark"] .icon-sun {
+      transform: rotate(0deg) scale(1);
+      opacity: 1;
+    }
+
+    [data-theme="dark"] .icon-moon {
+      transform: rotate(90deg) scale(0);
+      opacity: 0;
+    }
+
+    :root:not([data-theme="dark"]) .icon-sun {
+      transform: rotate(-90deg) scale(0);
+      opacity: 0;
+    }
+
+    :root:not([data-theme="dark"]) .icon-moon {
+      transform: rotate(0deg) scale(1);
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       2. KEYFRAME ANIMATIONS (Floating Media Container & Badge Pop)
+       ========================================================================== */
+    @keyframes floatIdle {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    @keyframes popBadge {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+
+    .animate-float-container {
+      animation: floatIdle 5s ease-in-out infinite;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, background-color 0.35s ease, border-color 0.35s ease;
+      transform-style: preserve-3d;
+    }
+
+    .badge-pop {
+      animation: popBadge 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* ==========================================================================
+       3. SCROLL-TRIGGERED FADE-UP REVEAL ANIMATION
+       Controlled via IntersectionObserver in JavaScript below.
+       ========================================================================== */
+    .reveal-item {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 0.35s ease,
+                  border-color 0.25s ease,
+                  box-shadow 0.25s ease;
+    }
+
+    .reveal-item.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-item.is-visible:hover {
+      border-color: var(--accent-color);
+      box-shadow: 0 12px 24px -8px var(--card-shadow);
+    }
+
+    /* ==========================================================================
+       4. STICKY NAVBAR SCROLLED STATE
+       ========================================================================== */
+    .navbar-scrolled {
+      background-color: var(--nav-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-solid);
+      box-shadow: 0 4px 16px -4px var(--card-shadow);
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- ========================================================================
+       1. STICKY HEADER / NAVIGATION BAR
+       ======================================================================== -->
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
+      
+      <!-- [BRAND LOGO] Placeholder -->
+      <a href="#" class="px-3.5 py-1.5 rounded-xl wire-box text-xs sm:text-sm font-semibold tracking-wider theme-text-main">
+        [BRAND LOGO]
+      </a>
+
+      <!-- Navigation Links Placeholders -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium theme-text-secondary">
+        <a href="#hero-section" class="hover:opacity-75 transition-opacity">[Nav Link 01]</a>
+        <a href="#features-section" class="hover:opacity-75 transition-opacity">[Nav Link 02]</a>
+        <a href="#grid-section" class="hover:opacity-75 transition-opacity">[Nav Link 03]</a>
+      </nav>
+
+      <!-- Theme Toggle, Cart Trigger & Header Action -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <!-- Dark / Light Mode Toggle Button -->
+        <button id="theme-toggle-btn" type="button" aria-label="Toggle Dark or Light Mode" title="Switch Theme"
+          class="relative w-10 h-10 rounded-xl wire-box theme-text-main flex items-center justify-center cursor-pointer overflow-hidden">
+          <!-- Sun Icon (Shown in Dark Mode to switch to Light) -->
+          <svg class="theme-icon icon-sun w-4 h-4 absolute" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path>
+          </svg>
+          <!-- Moon Icon (Shown in Light Mode to switch to Dark) -->
+          <svg class="theme-icon icon-moon w-4 h-4 absolute" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+          </svg>
+        </button>
+
+        <button id="cart-button" type="button" aria-label="Cart" class="relative px-3.5 py-2 rounded-xl wire-box text-xs font-medium theme-text-secondary flex items-center gap-2">
+          <span>[Cart]</span>
+          <span id="cart-badge" class="min-w-[20px] h-5 px-1.5 rounded-full theme-badge text-[11px] font-semibold flex items-center justify-center">
+            0
+          </span>
+        </button>
+
+        <a href="#hero-section" class="hidden sm:inline-flex px-4 py-2 rounded-xl theme-accent-btn text-xs font-semibold">
+          [Header CTA]
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       2. HERO PRODUCT SECTION (2-Column Responsive Layout)
+       ======================================================================== -->
+  <main>
+    <section id="hero-section" class="pt-28 pb-20 sm:pt-36 sm:pb-28 px-5 sm:px-8">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        
+        <!-- Left Column: Product Info, Option Selector & CTA -->
+        <div class="lg:col-span-6 space-y-6">
+          <!-- Category / Eyebrow Badge -->
+          <div class="inline-block px-3 py-1 rounded-full wire-box text-xs font-medium theme-text-muted">
+            [Category / Tagline Badge]
+          </div>
+
+          <!-- Main Product Title -->
+          <h1 class="text-3xl sm:text-5xl font-bold tracking-tight theme-text-main leading-tight">
+            [Product Title]
+          </h1>
+
+          <!-- Product Summary / Description -->
+          <p class="text-sm sm:text-base theme-text-secondary leading-relaxed max-w-xl">
+            [Short Product Description — Replace this block with 2–3 concise sentences highlighting your product's core value proposition and primary use case.]
+          </p>
+
+          <!-- Interactive Variant / Option Selector -->
+          <div class="pt-2 space-y-3">
+            <div class="flex items-center gap-2 text-xs font-medium theme-text-muted">
+              <span>[Option Label]:</span>
+              <span id="selected-option-label" class="font-semibold theme-text-main">[Option A]</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5" role="radiogroup" aria-label="Product Options">
+              <button type="button"
+                class="option-btn option-btn-active px-4 py-2 rounded-xl text-xs border transition-all"
+                data-option="[Option A]"
+                data-price="[$00.00]"
+                data-media="[Product Image Placeholder — Option A]">
+                [Option A]
+              </button>
+
+              <button type="button"
+                class="option-btn option-btn-inactive px-4 py-2 rounded-xl text-xs border transition-all"
+                data-option="[Option B]"
+                data-price="[$00.00 +]"
+                data-media="[Product Image Placeholder — Option B]">
+                [Option B]
+              </button>
+
+              <button type="button"
+                class="option-btn option-btn-inactive px-4 py-2 rounded-xl text-xs border transition-all"
+                data-option="[Option C]"
+                data-price="[$00.00 ++]"
+                data-media="[Product Image Placeholder — Option C]">
+                [Option C]
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary CTA & Secondary Link -->
+          <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+            <button id="primary-cta-btn" type="button"
+              class="px-7 py-3.5 rounded-2xl theme-accent-btn text-sm font-semibold active:scale-95 cursor-pointer flex items-center justify-center gap-2">
+              <span id="cta-label">[Primary CTA] — [$00.00]</span>
+            </button>
+
+            <a href="#features-section"
+              class="px-6 py-3.5 rounded-2xl wire-box theme-text-secondary text-sm font-medium text-center">
+              [Secondary Action]
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Floating / Tilt Product Media Placeholder -->
+        <div class="lg:col-span-6">
+          <div id="product-media-card"
+            class="animate-float-container wire-box rounded-3xl aspect-square max-w-[460px] mx-auto p-8 flex flex-col items-center justify-center text-center shadow-sm cursor-pointer select-none">
+            
+            <!-- Placeholder Frame Icon -->
+            <div class="w-16 h-16 rounded-2xl theme-subtle border flex items-center justify-center mb-4 theme-text-muted">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+            </div>
+
+            <p id="media-placeholder-text" class="text-sm sm:text-base font-semibold theme-text-main">
+              [Product Image Placeholder — Option A]
+            </p>
+            <p class="text-xs theme-text-muted mt-1.5">
+              (Replace this container with your &lt;img&gt;, SVG, or 3D canvas)
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         3. FEATURE HIGHLIGHTS SECTION (3-Column Responsive Grid)
+         ======================================================================== -->
+    <section id="features-section" class="py-20 sm:py-24 px-5 sm:px-8 theme-surface border-y theme-border">
+      <div class="max-w-6xl mx-auto">
+        
+        <!-- Section Header -->
+        <div class="max-w-2xl mb-12">
+          <p class="text-xs font-semibold uppercase tracking-widest theme-text-muted mb-2">[Section Eyebrow]</p>
+          <h2 class="text-2xl sm:text-4xl font-bold tracking-tight theme-text-main">
+            [Features Section Heading]
+          </h2>
+        </div>
+
+        <!-- 3-Column Feature Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          
+          <!-- Feature Card 01 -->
+          <article class="reveal-item wire-box rounded-3xl p-7 sm:p-8">
+            <div class="w-11 h-11 rounded-2xl theme-subtle border flex items-center justify-center text-xs font-bold theme-text-muted mb-6">
+              [01]
+            </div>
+            <h3 class="text-lg font-semibold theme-text-main mb-2">[Feature 01 Title]</h3>
+            <p class="text-sm theme-text-secondary leading-relaxed">
+              [Feature 01 Description — Add concise supporting details explaining how this benefit helps your customer.]
+            </p>
+          </article>
+
+          <!-- Feature Card 02 -->
+          <article class="reveal-item wire-box rounded-3xl p-7 sm:p-8" style="transition-delay: 100ms;">
+            <div class="w-11 h-11 rounded-2xl theme-subtle border flex items-center justify-center text-xs font-bold theme-text-muted mb-6">
+              [02]
+            </div>
+            <h3 class="text-lg font-semibold theme-text-main mb-2">[Feature 02 Title]</h3>
+            <p class="text-sm theme-text-secondary leading-relaxed">
+              [Feature 02 Description — Add concise supporting details explaining how this benefit helps your customer.]
+            </p>
+          </article>
+
+          <!-- Feature Card 03 -->
+          <article class="reveal-item wire-box rounded-3xl p-7 sm:p-8" style="transition-delay: 200ms;">
+            <div class="w-11 h-11 rounded-2xl theme-subtle border flex items-center justify-center text-xs font-bold theme-text-muted mb-6">
+              [03]
+            </div>
+            <h3 class="text-lg font-semibold theme-text-main mb-2">[Feature 03 Title]</h3>
+            <p class="text-sm theme-text-secondary leading-relaxed">
+              [Feature 03 Description — Add concise supporting details explaining how this benefit helps your customer.]
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         4. SECONDARY SHOWCASE / SPECIFICATIONS GRID
+         ======================================================================== -->
+    <section id="grid-section" class="py-20 sm:py-24 px-5 sm:px-8">
+      <div class="max-w-6xl mx-auto">
+        
+        <div class="max-w-2xl mb-12">
+          <p class="text-xs font-semibold uppercase tracking-widest theme-text-muted mb-2">[Secondary Eyebrow]</p>
+          <h2 class="text-2xl sm:text-4xl font-bold tracking-tight theme-text-main">
+            [Showcase / Specs Grid Heading]
+          </h2>
+        </div>
+
+        <!-- 2x2 Asymmetric / Bento Wireframe Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+          <div class="reveal-item wire-box rounded-3xl p-8 min-h-[200px] flex flex-col justify-between">
+            <span class="text-xs font-semibold theme-text-muted">[Grid Block 01]</span>
+            <div>
+              <h3 class="text-lg font-semibold theme-text-main">[Specification / Detail Title]</h3>
+              <p class="text-sm theme-text-secondary mt-1">[Add metric, dimension, or secondary image placeholder here.]</p>
+            </div>
+          </div>
+
+          <div class="reveal-item wire-box rounded-3xl p-8 min-h-[200px] flex flex-col justify-between" style="transition-delay: 100ms;">
+            <span class="text-xs font-semibold theme-text-muted">[Grid Block 02]</span>
+            <div>
+              <h3 class="text-lg font-semibold theme-text-main">[Specification / Detail Title]</h3>
+              <p class="text-sm theme-text-secondary mt-1">[Add metric, dimension, or secondary image placeholder here.]</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================
+       5. MINIMALIST FOOTER PLACEHOLDER
+       ======================================================================== -->
+  <footer class="border-t theme-border theme-surface py-10 px-5 sm:px-8">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs theme-text-muted">
+      <div class="font-semibold theme-text-main">[BRAND LOGO] &copy; [Year]</div>
+      <div class="flex items-center gap-6">
+        <a href="#hero-section" class="hover:opacity-75 transition-opacity">[Footer Link 01]</a>
+        <a href="#features-section" class="hover:opacity-75 transition-opacity">[Footer Link 02]</a>
+        <a href="#grid-section" class="hover:opacity-75 transition-opacity">[Footer Link 03]</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container (Hidden until CTA is clicked) -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 translate-y-20 opacity-0 pointer-events-none transition-all duration-300 theme-badge px-4 py-3 rounded-2xl shadow-lg text-xs sm:text-sm font-medium">
+    <span id="toast-message">[Notification Message]</span>
+  </div>
+
+  <!-- ========================================================================
+       VANILLA JAVASCRIPT: INTERACTIVE ANIMATIONS & UI LOGIC
+       ======================================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // ----------------------------------------------------------------------
+      // 0. DARK / LIGHT MODE THEME TOGGLE WITH LOCALSTORAGE PERSISTENCE
+      // ----------------------------------------------------------------------
+      const themeToggleBtn = document.getElementById('theme-toggle-btn');
+      const rootElement = document.documentElement;
+
+      themeToggleBtn.addEventListener('click', () => {
+        const isCurrentlyDark = rootElement.getAttribute('data-theme') === 'dark';
+        const nextTheme = isCurrentlyDark ? 'light' : 'dark';
+
+        if (nextTheme === 'dark') {
+          rootElement.setAttribute('data-theme', 'dark');
+        } else {
+          rootElement.removeAttribute('data-theme');
+        }
+
+        try {
+          localStorage.setItem('wireframe-theme', nextTheme);
+        } catch (e) {}
+      });
+
+      // ----------------------------------------------------------------------
+      // 1. STICKY NAVBAR STYLE ON SCROLL
+      // ----------------------------------------------------------------------
+      const navbar = document.getElementById('navbar');
+
+      const updateNavbar = () => {
+        if (window.scrollY > 20) {
+          navbar.classList.add('navbar-scrolled');
+        } else {
+          navbar.classList.remove('navbar-scrolled');
+        }
+      };
+
+      window.addEventListener('scroll', updateNavbar, { passive: true });
+      updateNavbar();
+
+      // ----------------------------------------------------------------------
+      // 2. SMOOTH POINTER TILT EFFECT ON HERO PRODUCT CONTAINER
+      // ----------------------------------------------------------------------
+      const mediaCard = document.getElementById('product-media-card');
+
+      mediaCard.addEventListener('mousemove', (e) => {
+        const rect = mediaCard.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+        // Pause idle float while user hovers and apply subtle 3D tilt
+        mediaCard.style.animation = 'none';
+        mediaCard.style.transform = `perspective(800px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-4px)`;
+      });
+
+      mediaCard.addEventListener('mouseleave', () => {
+        mediaCard.style.transform = '';
+        mediaCard.style.animation = '';
+      });
+
+      // ----------------------------------------------------------------------
+      // 3. INTERACTIVE VARIANT / OPTION SELECTOR
+      // ----------------------------------------------------------------------
+      const optionButtons = document.querySelectorAll('.option-btn');
+      const selectedOptionLabel = document.getElementById('selected-option-label');
+      const mediaPlaceholderText = document.getElementById('media-placeholder-text');
+      const ctaLabel = document.getElementById('cta-label');
+
+      let activeOption = '[Option A]';
+      let activePrice = '[$00.00]';
+
+      optionButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          // Reset all buttons to inactive style
+          optionButtons.forEach((b) => {
+            b.classList.remove('option-btn-active');
+            b.classList.add('option-btn-inactive');
+          });
+
+          // Activate clicked button
+          btn.classList.add('option-btn-active');
+          btn.classList.remove('option-btn-inactive');
+
+          // Swap placeholder text values
+          activeOption = btn.dataset.option;
+          activePrice = btn.dataset.price;
+          selectedOptionLabel.textContent = activeOption;
+          mediaPlaceholderText.textContent = btn.dataset.media;
+          ctaLabel.textContent = `[Primary CTA] — ${activePrice}`;
+        });
+      });
+
+      // ----------------------------------------------------------------------
+      // 4. SCROLL-TRIGGERED FADE-UP REVEAL (IntersectionObserver)
+      // ----------------------------------------------------------------------
+      const revealItems = document.querySelectorAll('.reveal-item');
+
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      revealItems.forEach((item) => revealObserver.observe(item));
+
+      // ----------------------------------------------------------------------
+      // 5. CART COUNTER & TOAST NOTIFICATION ON PRIMARY CTA CLICK
+      // ----------------------------------------------------------------------
+      const primaryCtaBtn = document.getElementById('primary-cta-btn');
+      const cartBadge = document.getElementById('cart-badge');
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+
+      let cartCount = 0;
+      let toastTimer;
+
+      primaryCtaBtn.addEventListener('click', () => {
+        cartCount += 1;
+        cartBadge.textContent = cartCount;
+
+        // Replay badge pop animation
+        cartBadge.classList.remove('badge-pop');
+        void cartBadge.offsetWidth;
+        cartBadge.classList.add('badge-pop');
+
+        // Show toast feedback
+        toastMessage.textContent = `[Added to Cart]: [Product Title] — ${activeOption}`;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 2500);
+      });
+
+    });
+  </script>
+</body>
+</html>
